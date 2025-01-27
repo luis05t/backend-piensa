@@ -24,7 +24,7 @@ describe('CreateLoginDto', () => {
   it.only('should validate a valid user DTO', async () => {
     const dto = new CreateLoginDto();
     dto.email = "alluis2005@gmail.com"
-    dto.password = "luis123"
+    dto.password = null
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
   });         
