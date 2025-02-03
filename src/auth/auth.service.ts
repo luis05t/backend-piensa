@@ -11,6 +11,8 @@ import { JwtPayload } from './strategy/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { Prisma } from '@prisma/client';
+import { ValidRoles } from './interfaces/roles';
 
 @Injectable()
 export class AuthService {
@@ -48,14 +50,24 @@ export class AuthService {
     };
   }
 
-  async register(createUserDto: CreateUserDto) {
+  async register(tx: Prisma.TransactionClient, createUserDto: CreateUserDto) {
     const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
 
+    const defaultRole = await tx.roles.findFirst({
+      where: {
+        roleName: ValidRoles.user,
+      },
+    });
+    if (!defaultRole) {
+      throw new Error('Default role not found');
+    }
+
     try {
-      const user = await this.prisma.users.create({
+      const user = await tx.users.create({
         data: {
           ...createUserDto,
           password: hashedPassword,
+          roleId: defaultRole.roleId,
         },
         select: {
           email: true,
@@ -74,8 +86,8 @@ export class AuthService {
       };
     } catch (error) {
       this.handleDBErrors(error);
-    }
-  }
+    }
+  }
 
   private getJwtToken(payload: JwtPayload, options?: { expiresIn: string }) {
     const token = this.jwtService.sign(payload, options);
