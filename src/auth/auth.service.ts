@@ -9,7 +9,6 @@ import { CreateLoginDto } from './dto/createLogin.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './strategy/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { Prisma } from '@prisma/client';
 import { ValidRoles } from './interfaces/roles';
@@ -19,7 +18,6 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private usersService: UsersService,
   ) {}
 
   async login(loginDto: CreateLoginDto) {
@@ -28,9 +26,11 @@ export class AuthService {
     const user = await this.prisma.users.findUnique({
       where: { email },
       select: {
+        name: true,
         email: true,
         password: true,
         userId: true,
+        roleId: true,
       },
     });
 
@@ -39,13 +39,26 @@ export class AuthService {
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Credentials are not valid');
 
+    const role = await this.prisma.roles.findUnique({
+      where: { roleId: user.roleId },
+      select: { roleName: true },
+    });
+
     const accessToken = this.getJwtToken(
-      { id: user.userId },
+      {
+        id: user.userId,
+        name: user.name,
+        email: user.email,
+        role: role?.roleName,
+      },
       { expiresIn: '2d' },
     );
 
     return {
       userId: user.userId,
+      name: user.name,
+      email: user.email,
+      role: role?.roleName || null,
       accessToken,
     };
   }
@@ -53,13 +66,24 @@ export class AuthService {
   async register(tx: Prisma.TransactionClient, createUserDto: CreateUserDto) {
     const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
 
-    const defaultRole = await tx.roles.findFirst({
-      where: {
-        roleName: ValidRoles.user,
-      },
-    });
-    if (!defaultRole) {
-      throw new Error('Default role not found');
+    let role;
+
+    if (createUserDto.roleId) {
+      role = await tx.roles.findUnique({
+        where: { roleId: createUserDto.roleId },
+      });
+
+      if (!role) {
+        throw new Error('Invalid roleId provided');
+      }
+    } else {
+      role = await tx.roles.findFirst({
+        where: { roleName: ValidRoles.user },
+      });
+
+      if (!role) {
+        throw new Error('Default role not found');
+      }
     }
 
     try {
@@ -67,16 +91,22 @@ export class AuthService {
         data: {
           ...createUserDto,
           password: hashedPassword,
-          roleId: defaultRole.roleId,
+          roleId: role.roleId,
         },
         select: {
           email: true,
           userId: true,
+          name: true,
         },
       });
 
       const accessToken = this.getJwtToken(
-        { id: user.userId },
+        {
+          id: user.userId,
+          name: user.name,
+          email: user.email,
+          role: role?.roleName,
+        },
         { expiresIn: '2d' },
       );
 
@@ -86,8 +116,8 @@ export class AuthService {
       };
     } catch (error) {
       this.handleDBErrors(error);
-    }
-  }
+    }
+  }
 
   private getJwtToken(payload: JwtPayload, options?: { expiresIn: string }) {
     const token = this.jwtService.sign(payload, options);
