@@ -31,8 +31,6 @@ async function main() {
     },
   });
 
-  console.log('Seed data created');
-
   const user2 = await prisma.users.create({
     data: {
       name: 'Jane Smith',
@@ -59,25 +57,36 @@ async function main() {
     },
   });
 
-  // Crear eventos
-  const event1 = await prisma.events.create({
+  // Crear registros de signos vitales
+  const vitalSign1 = await prisma.vitalSigns.create({
     data: {
-      name: 'Event 1',
-      date: new Date(),
       userId: user.userId,
+      BPM: 60,
+      temp: 24.619,
+      timestamp: new Date('2025-02-11T03:11:32.400Z'),
     },
   });
 
-  const event2 = await prisma.events.create({
+  const vitalSign2 = await prisma.vitalSigns.create({
     data: {
-      name: 'Event 2',
-      date: new Date(),
       userId: user2.userId,
+      BPM: 72,
+      temp: 36.5,
+      timestamp: new Date(),
     },
   });
 
-  const variables = { device1, device2, event1, event2 };
-  console.log(`Datos de seed ${variables}\n creados exitosamente`);
+  console.log('Seed data created successfully');
+  console.log({
+    adminRole,
+    userRole,
+    user,
+    user2,
+    device1,
+    device2,
+    vitalSign1,
+    vitalSign2,
+  });
 }
 
 main()

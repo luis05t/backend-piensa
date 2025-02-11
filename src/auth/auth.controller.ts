@@ -6,8 +6,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService,
-    private readonly prismaService: PrismaService
+  constructor(
+    private readonly authService: AuthService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   @Post('login')
@@ -22,4 +23,3 @@ export class AuthController {
     });
   }
 }
-//s

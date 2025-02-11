@@ -8,16 +8,16 @@ datasource db {
 }
 
 model Users {
-  userId     String    @id @default(uuid())
+  userId     String       @id @default(uuid())
   name       String
-  email      String    @unique
+  email      String       @unique
   password   String
   roleId     String
-  roles      Roles     @relation(fields: [roleId], references: [roleId])
+  roles      Roles        @relation(fields: [roleId], references: [roleId])
   Devices    Devices[]
-  Events     Events[]
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  vitalSigns VitalSigns[]
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
 }
 
 model Roles {
@@ -37,13 +37,13 @@ model Devices {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
-
-model Events {
-  eventId    String   @id @default(uuid())
-  name       String
-  date       DateTime
-  userId     String
-  user       Users    @relation(fields: [userId], references: [userId])
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+model VitalSigns {
+  vitalSignId String   @id @default(uuid())
+  userId      String
+  user        Users    @relation(fields: [userId], references: [userId])
+  BPM         Int?
+  temp        Float?
+  timestamp   DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
