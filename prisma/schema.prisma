@@ -13,19 +13,19 @@ model Users {
   email      String       @unique
   password   String
   roleId     String
-  roles      Roles        @relation(fields: [roleId], references: [roleId])
-  Devices    Devices[]
-  vitalSigns VitalSigns[]
   created_at DateTime     @default(now())
   updated_at DateTime     @updatedAt
+  Devices    Devices[]
+  roles      Roles        @relation(fields: [roleId], references: [roleId])
+  vitalSigns VitalSigns[]
 }
 
 model Roles {
   roleId     String   @id @default(uuid())
-  roleName   String
-  users      Users[]
+  roleName   String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  users      Users[]
 }
 
 model Devices {
@@ -33,17 +33,18 @@ model Devices {
   name       String
   status     String
   userId     String
-  user       Users    @relation(fields: [userId], references: [userId])
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  user       Users    @relation(fields: [userId], references: [userId])
 }
+
 model VitalSigns {
   vitalSignId String   @id @default(uuid())
   userId      String
-  user        Users    @relation(fields: [userId], references: [userId])
   BPM         Int?
   temp        Float?
   timestamp   DateTime
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+  user        Users    @relation(fields: [userId], references: [userId])
 }
