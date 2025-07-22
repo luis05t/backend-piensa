@@ -12,13 +12,14 @@ export class VitalSignsService {
 
     const date = new Date(timestamp);
 
-    const { BPM, temp } = vitalSigns;
+    const { BPM, temp, SpO2 } = vitalSigns;
 
     const newVitalSign = await this.prisma.vitalSigns.create({
       data: {
         userId: patientId,
         BPM,
         temp,
+        SpO2,
         timestamp: date,
       },
     });

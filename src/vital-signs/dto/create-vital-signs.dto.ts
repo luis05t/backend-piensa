@@ -5,5 +5,6 @@ export class CreateVitalSignDto {
   vitalSigns: {
     BPM?: number;
     temp?: number;
+    SpO2?: number;
   };
 }

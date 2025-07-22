@@ -43,6 +43,7 @@ model VitalSigns {
   userId      String
   BPM         Int?
   temp        Float?
+  SpO2        Int
   timestamp   DateTime
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
